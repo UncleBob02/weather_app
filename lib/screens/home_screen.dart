@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
+import '../widgets/weather_card.dart';
+import '../services/weather_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,6 +13,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _cityController = TextEditingController();
   
+  final WeatherService _weatherService = WeatherService();
+
   String _city = 'Johannesburg';
 
   Weather _weather = const Weather(
@@ -20,7 +24,17 @@ class _HomeScreenState extends State<HomeScreen> {
     feelsLike: 21,
     humidity: 58,
     windSpeed: 14,
+    weatherCode: 2,
   );
+
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _cityController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,109 +53,68 @@ class _HomeScreenState extends State<HomeScreen> {
                 hintText: 'Enter a city',
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search),
-                  onPressed: () {
-                    setState(() {
-                      _city = _cityController.text;
-                    });
-                  },
+                  onPressed: _isLoading 
+                    ? null : () 
+                    async {
+                      final city = _cityController.text.trim();
+
+                      if (city.isEmpty) {
+                        return;
+                      }
+
+                      setState(() {
+                        _isLoading = true;
+                        _errorMessage = null;
+                      });
+
+                      try {
+                        final weather = await _weatherService.getWeather(city);
+
+                        setState(() {
+                          _city = city;
+                          _weather = weather;
+                          _isLoading = false;
+                        });
+                      } catch (e) {
+                        setState(() {
+                          _isLoading = false;
+                          _errorMessage = 'Could not find the weather for "$city".';
+                        });
+                      }
+                    },
                 ),
                 border: const OutlineInputBorder(),
               ),
+            
+            
             ),
 
-            Text(
-              _city,
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+            if (_isLoading) ...[
+              const SizedBox(height: 24),
+              const Center(
+                child: CircularProgressIndicator(),
               ),
-            ),
+            ],
 
-            const SizedBox(height: 8),
-
-            Text(
-              _weather.condition,
-              style: TextStyle(
-                fontSize: 18,
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            Center(
-              child: Text(
-                '${_weather.temperature}°C',
-                style: TextStyle(
-                  fontSize: 64,
-                  fontWeight: FontWeight.bold,
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                _errorMessage!,
+                style: const TextStyle(
+                  color: Colors.red,
                 ),
               ),
-            ),
+            ],
 
-            const SizedBox(height: 8),
+            if (!_isLoading && _errorMessage == null) ...[
 
-            Center(
-              child: Text(
-                'Feels like ${_weather.feelsLike}°C',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              WeatherCard(
+                weather: _weather,
               ),
-            ),
-
-            const SizedBox(height: 40),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _WeatherDetails(
-                  label: 'Humidity',
-                  value: '${_weather.humidity}%',
-                ),
-                _WeatherDetails(
-                  label: 'Wind',
-                  value: '${_weather.windSpeed} km/h',
-                ),
-              ],
-            )
+            ],
           ],
         ),
       ),
-    );
-  }
-}
-
-class _WeatherDetails extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _WeatherDetails({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14
-          )
-        ),
-
-        const SizedBox(height: 4),
-
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          )
-        ),
-      ],
     );
   }
 }

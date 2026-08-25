@@ -5,6 +5,7 @@ class Weather {
   final double feelsLike;
   final int humidity;
   final double windSpeed;
+  final int weatherCode;
 
   const Weather({
     required this.city,
@@ -13,5 +14,6 @@ class Weather {
     required this.feelsLike,
     required this.humidity,
     required this.windSpeed,
+    required this.weatherCode,
   }); 
 }
