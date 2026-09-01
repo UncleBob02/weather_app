@@ -162,6 +162,7 @@ class _ForecastRow extends StatelessWidget {
         vertical: 14,
       ),
       decoration: BoxDecoration(
+        color:Theme.of(context).colorScheme.surfaceContainerLow,
         border: Border.all(
           color: Theme.of(context).colorScheme.outlineVariant,
         ),
@@ -181,9 +182,9 @@ class _ForecastRow extends StatelessWidget {
 
           Expanded(
             child: Icon(
-              _getWeatherIcon(
-                forecast.weatherCode
-              ),
+              _getWeatherIcon(forecast.weatherCode),
+              size: 26,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
 
@@ -193,11 +194,11 @@ class _ForecastRow extends StatelessWidget {
                 forecast.weatherCode
               ), 
               maxLines: 1, 
-              overflow: TextOverflow.ellipsis, 
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ), 
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 15
-              ),
             ),
           ),
 
@@ -205,8 +206,7 @@ class _ForecastRow extends StatelessWidget {
             child: Text(
               '${forecast.maxTemperature.round()}° /  ${forecast.minTemperature.round()}°',
               textAlign: TextAlign.right,
-              style: const TextStyle(
-                fontSize: 15,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
             ),

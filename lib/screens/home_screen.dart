@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadWeather(String city) async {
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -53,13 +54,24 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final weatherData = await _weatherService.getWeather(city);
 
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         _weather = weatherData.current;
         _forecast = weatherData.forecast;
+
+        _cityController.text = weatherData.current.city;
+
         _isLoading = false;
         _errorMessage = null;
       });
     } catch (e) {
+      if(!mounted) {
+        return;
+      }
+      
       setState(() {
         _isLoading = false;
         _errorMessage = 'Could not find the weather for "$city".';
@@ -95,8 +107,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     TextField(
                       controller: _cityController,
+                      onSubmitted: (value) {
+                        final city = value.trim();
+
+                        if (city.isEmpty || _isLoading) {
+                          return;
+                        }
+
+                        _loadWeather(city);
+                      },
                       decoration: InputDecoration(
-                        hintText: 'Enter a city',
+                        hintText: 'Enter a city...',
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.search),
                           onPressed: _isLoading 
