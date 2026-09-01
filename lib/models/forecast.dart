@@ -1,5 +1,3 @@
-export 'forecast.dart';
-
 class Forecast {
   final DateTime date;
   final double maxTemperature;

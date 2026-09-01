@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 import '../models/models.dart';
 
@@ -40,7 +39,7 @@ class WeatherService {
     }
   }
 
-  Future<Weather> getWeather(String city) async {
+  Future<WeatherData> getWeather(String city) async {
     final url = Uri.https(
       'geocoding-api.open-meteo.com',
       '/v1/search',
@@ -100,19 +99,39 @@ class WeatherService {
 
     final current = weatherData['current'];
     final daily = weatherData['daily'];
+
     final weatherCode = current['weather_code'];
+    final forecasts = <Forecast>[];
+
+    for (int i = 0; i < daily['time'].length; i++) {
+      forecasts.add(
+        Forecast(
+          date: DateTime.parse(daily['time'][i]),
+          weatherCode: daily['weather_code'][i],
+          maxTemperature: daily['temperature_2m_max'][i],
+          minTemperature: daily['temperature_2m_min'][i],
+        ),
+      );
+    }
 
     print('Weather Status: ${weatherResponse.statusCode}');
     print('Weather Response: ${weatherResponse.body}');
+    print('Forecast count: ${forecasts.length}');
+    print('First forecast: ${forecasts.first.date}');
 
-    return Weather(
+    final currentWeather = Weather(
       city: location['name'],
       temperature: current['temperature_2m'],
       condition: _getWeatherCondition(weatherCode),
       feelsLike: current['apparent_temperature'],
-      humidity: current['relativehumidity_2m'],
-      windSpeed: current['windspeed_10m'],
+      humidity: current['relative_humidity_2m'],
+      windSpeed: current['wind_speed_10m'],
       weatherCode: weatherCode,
+    );
+
+    return WeatherData(
+      current: currentWeather,
+      forecast: forecasts,
     );
   }
 }
