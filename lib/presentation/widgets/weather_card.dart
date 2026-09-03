@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/models.dart';
+import '../../domain/entities/weather.dart';
 
 class WeatherCard extends StatelessWidget {
   final Weather weather;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/home_screen.dart';
+import 'presentation/pages/home/home_page.dart';
 
 void main() {
   runApp(const WeatherApp());
@@ -18,7 +18,7 @@ class WeatherApp extends StatelessWidget {
           seedColor: Colors.blue,
         ),
       ),
-      home: const HomeScreen(),
+      home: const HomePage(),
     );
   }
 }

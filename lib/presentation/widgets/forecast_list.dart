@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/models.dart';
+import '../../domain/entities/forecast.dart';
 
 class ForecastList extends StatelessWidget {
   final List<Forecast> forecasts;

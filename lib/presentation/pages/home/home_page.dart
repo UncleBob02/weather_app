@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
-import '../models/models.dart';
-import '../widgets/weather_card.dart';
-import '../services/weather_service.dart';
-import '../widgets/forecast_list.dart';
+import '../../widgets/forecast_list.dart';
+import '../../widgets/weather_card.dart';
+import '../../../domain/entities/weather.dart';
+import '../../../domain/entities/forecast.dart';
+import '../../../domain/usecases/get_weather.dart';
+import '../../../core/injection.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomePage> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomePage> {
   final TextEditingController _cityController = TextEditingController();
   
-  final WeatherService _weatherService = WeatherService();
+  final GetWeather _getWeather = getWeather;
 
   Weather _weather = const Weather(
     city: 'Midrand',
@@ -52,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final weatherData = await _weatherService.getWeather(city);
+      final weatherData = await _getWeather(city);
 
       if (!mounted) {
         return;
@@ -61,9 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _weather = weatherData.current;
         _forecast = weatherData.forecast;
-
-        _cityController.text = weatherData.current.city;
-
         _isLoading = false;
         _errorMessage = null;
       });
@@ -76,6 +75,10 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
         _errorMessage = 'Could not find the weather for "$city".';
       });
+    } finally {
+      if (mounted) {
+        _cityController.clear();
+      }
     }
   }
 
@@ -119,7 +122,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: InputDecoration(
                         hintText: 'Enter a city...',
                         hintStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.search),
