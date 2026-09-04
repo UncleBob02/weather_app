@@ -1,41 +1,37 @@
 import 'package:flutter/material.dart';
 import '../../widgets/forecast_list.dart';
 import '../../widgets/weather_card.dart';
+import '../../state/weather_state.dart';
 import '../../../domain/entities/weather.dart';
-import '../../../domain/entities/forecast.dart';
-import '../../../domain/usecases/get_weather.dart';
 import '../../../core/injection.dart';
+import '../../state/weather_controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomeScreenState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomeScreenState extends State<HomePage> {
+class _HomePageState extends State<HomePage> {
   final TextEditingController _cityController = TextEditingController();
   
-  final GetWeather _getWeather = getWeather;
-
-  Weather _weather = const Weather(
-    city: 'Midrand',
-    temperature: 22,
-    condition: 'Partly cloudy',
-    feelsLike: 21,
-    humidity: 58,
-    windSpeed: 14,
-    weatherCode: 2,
-  );
-
-  List<Forecast> _forecast = [];
-
-  bool _isLoading = false;
-  String? _errorMessage;
+  late final WeatherController _controller;
 
   @override
   void initState() {
     super.initState();
+
+    _controller = WeatherController(
+      getWeather: getWeather,
+      onStateChanged: (newState) {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {});
+      },
+    );
 
     _loadWeather('Midrand');
   }
@@ -47,38 +43,10 @@ class _HomeScreenState extends State<HomePage> {
   }
 
   Future<void> _loadWeather(String city) async {
+    await _controller.loadWeather(city);
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final weatherData = await _getWeather(city);
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _weather = weatherData.current;
-        _forecast = weatherData.forecast;
-        _isLoading = false;
-        _errorMessage = null;
-      });
-    } catch (e) {
-      if(!mounted) {
-        return;
-      }
-      
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Could not find the weather for "$city".';
-      });
-    } finally {
-      if (mounted) {
-        _cityController.clear();
-      }
+    if (!mounted) {
+      _cityController.clear();
     }
   }
 
@@ -113,7 +81,7 @@ class _HomeScreenState extends State<HomePage> {
                       onSubmitted: (value) {
                         final city = value.trim();
 
-                        if (city.isEmpty || _isLoading) {
+                        if (city.isEmpty || _controller.state.isLoading) {
                           return;
                         }
 
@@ -128,7 +96,7 @@ class _HomeScreenState extends State<HomePage> {
                         ),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.search),
-                          onPressed: _isLoading 
+                          onPressed: _controller.state.isLoading 
                             ? null : () {
                               final city = _cityController.text.trim();
 
@@ -147,33 +115,33 @@ class _HomeScreenState extends State<HomePage> {
 
                     const SizedBox(height: 24),
 
-                    if (_isLoading) ...[
+                    if (_controller.state.isLoading) ...[
                       const SizedBox(height: 24),
                       const Center(
                         child: CircularProgressIndicator(),
                       ),
                     ],
 
-                    if (_errorMessage != null) ...[
+                    if (_controller.state.errorMessage != null) ...[
                       const SizedBox(height: 16),
                       Text(
-                        _errorMessage!,
+                        _controller.state.errorMessage!,
                         style: const TextStyle(
                           color: Colors.red,
                         ),
                       ),
                     ],
 
-                    if (!_isLoading && _errorMessage == null) ...[
+                    if (!_controller.state.isLoading && _controller.state.errorMessage == null) ...[
 
                       WeatherCard(
-                        weather: _weather,
+                        weather: _controller.state.weather,
                       ),
 
                       const SizedBox(height: 40),
                       
                       ForecastList(
-                        forecasts: _forecast,
+                        forecasts: _controller.state.forecast,
                       ),
                     ],
                   ],
