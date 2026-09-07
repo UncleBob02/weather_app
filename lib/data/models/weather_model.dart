@@ -1,4 +1,5 @@
 import '../../domain/entities/weather.dart';
+import '../../core/utils/weather_condition.dart';
 
 class WeatherModel {
   final String city;
@@ -22,16 +23,17 @@ class WeatherModel {
   factory WeatherModel.fromJson(
     Map<String, dynamic> json, {
     required String city,
-    required String condition,
   }) {
+    final weatherCode = (json['weather_code'] as num).toInt();
+
     return WeatherModel(
       city: city,
       temperature: (json['temperature_2m'] as num).toDouble(),
-      condition: condition,
+      condition: getWeatherCondition(weatherCode),
       feelsLike: (json['apparent_temperature'] as num).toDouble(),
       humidity: (json['relative_humidity_2m'] as num).toInt(),
       windSpeed: (json['wind_speed_10m'] as num).toDouble(),
-      weatherCode: (json['weather_code'] as num).toInt(),
+      weatherCode: weatherCode,
     );
   }
 

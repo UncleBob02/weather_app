@@ -1,5 +1,5 @@
-import '../../domain/entities/weather.dart';
 import '../../domain/usecases/get_weather.dart';
+import '../../core/error/failures.dart';
 import 'weather_state.dart';
 
 class WeatherController {
@@ -11,20 +11,7 @@ class WeatherController {
   WeatherController({
     required this.getWeather,
     required this.onStateChanged,
-  }) : state = const WeatherState(
-        weather: Weather(
-          city: 'Midrand',
-          temperature: 25,
-          condition: 'Partly cloudy',
-          feelsLike: 24,
-          humidity: 58,
-          windSpeed: 13,
-          weatherCode: 2,
-        ),
-        forecast: const [],
-        isLoading: false,
-        errorMessage: null,
-      );
+  }) : state = WeatherState.initial();
 
   Future<void> loadWeather(String city) async {
     state = state.copyWith(
@@ -44,10 +31,25 @@ class WeatherController {
       );
       onStateChanged(state);
     } catch (e) {
+      print('Weather Error: $e');
+
+      String message;
+
+      if (e is LocationFailure) {
+        message = 'Location not found.';
+      } else if (e is ServerFailure) {
+        message = 'Could not connect to the weather service.';
+      } else if(e is NetworkFailure) {
+        message = 'Network error occurred.';
+      } else {
+        message = 'Something went wrong.';
+      }
+
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Could not find the weather for "$city".',
+        errorMessage: message,
       );
+      
       onStateChanged(state);
     }
   }

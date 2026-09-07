@@ -14,6 +14,23 @@ class WeatherState {
     this.errorMessage,
   });
 
+  factory WeatherState.initial() {
+    return const WeatherState(
+      weather: Weather(
+        city: '',
+        temperature: 0,
+        condition: '',
+        feelsLike: 0,
+        humidity: 0,
+        windSpeed: 0,
+        weatherCode: 0,
+      ),
+      forecast: [],
+      isLoading: true,
+      errorMessage: null,
+    );
+  }
+
   WeatherState copyWith({
     Weather? weather,
     List<Forecast>? forecast,

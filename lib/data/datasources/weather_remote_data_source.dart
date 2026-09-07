@@ -1,8 +1,13 @@
 import 'dart:convert';
+import '../models/location_model.dart';
+import '../models/weather_data_model.dart';
+import '../models/weather_model.dart';
+import '../models/forecast_model.dart';
 import 'package:http/http.dart' as http;
+import '../../core/error/failures.dart';
 
 class WeatherRemoteDataSource {
-  Future<Map<String, dynamic>> getLocation(String city) async {
+  Future<LocationModel> getLocation(String city) async {
     final url = Uri.https(
       'geocoding-api.open-meteo.com',
       '/v1/search',
@@ -14,26 +19,43 @@ class WeatherRemoteDataSource {
       }
     );
 
-    final response = await http.get(url);
+    try{
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to find location');
+      final response = await http.get(url);
+
+      if (response.statusCode != 200) {
+        throw ServerFailure('Failed to find location');
+      }
+
+      final data = jsonDecode(response.body);
+
+      final results = data['results'];
+
+      if (results == null || results.isEmpty) {
+        throw LocationFailure('Location not found');
+      }
+
+      final location = results.firstWhere(
+        (result) => result['country_code'] == 'ZA',
+        orElse: () => results[0],
+      );
+
+      return LocationModel.fromJson(location);
+
+    } catch (e) {
+      if (e is Failure) {
+        rethrow;
+      } 
+        
+      throw NetworkFailure('Network error occurred');
     }
-
-    final data = jsonDecode(response.body);
-    final results = data['results'];
-
-    if (results == null || results.isEmpty) {
-      throw Exception('Location not found');
-    }
-
-    return results.firstWhere(
-      (result) => result['country_code'] == 'ZA',
-      orElse: () => results[0],
-    );
   }
 
-  Future<Map<String, dynamic>> getWeather(double latitude, double longitude) async {
+  Future<WeatherDataModel> getWeather(
+    double latitude, 
+    double longitude,
+    String city,
+  ) async {
     final url = Uri.parse(
       'https://api.open-meteo.com/v1/forecast'
       '?latitude=$latitude'
@@ -44,12 +66,36 @@ class WeatherRemoteDataSource {
       '&timezone=auto',
     );
 
-    final response = await http.get(url);
+    try {
 
-    if (response.statusCode != 200) {
-      throw Exception('Failed to fetch weather data');
+      final response = await http.get(url);
+
+      if (response.statusCode != 200) {
+        throw ServerFailure('Failed to fetch weather data');
+      }
+
+      final data = jsonDecode(response.body);
+
+      final current = data['current'];
+      final daily = data['daily'];
+
+      final currentWeather = WeatherModel.fromJson(
+        current,
+        city: '',
+      );
+
+      final forecasts = ForecastModel.fromDailyJson(daily);
+
+      return WeatherDataModel.fromModels(
+        current: currentWeather,
+        forecast: forecasts,
+      );
+
+    } catch (e) {
+      if (e is Failure) {
+        rethrow;
+      }
+      throw NetworkFailure('Network error occurred');
     }
-
-    return jsonDecode(response.body);
   }
 }

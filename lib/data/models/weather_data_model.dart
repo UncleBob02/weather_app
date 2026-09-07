@@ -13,6 +13,16 @@ class WeatherDataModel {
     required this.forecast,
   });
 
+  factory WeatherDataModel.fromModels({
+    required WeatherModel current,
+    required List<ForecastModel> forecast,
+  }) {
+    return WeatherDataModel(
+      current: current,
+      forecast: forecast,
+    );
+  }
+
   WeatherData toEntity() {
     return WeatherData(
       current: current.toEntity(),

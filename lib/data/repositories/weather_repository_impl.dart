@@ -17,38 +17,12 @@ class WeatherRepositoryImpl implements WeatherRepository {
   Future<WeatherData> getWeather(String city) async {
     final location = await remoteDataSource.getLocation(city);
 
-    final latitude = (location['latitude'] as num).toDouble();
-    final longitude = (location['longitude'] as num).toDouble();
-
-    final weatherData = await remoteDataSource.getWeather(latitude, longitude);
-
-    final current = weatherData['current'];
-    final daily = weatherData['daily'];
-
-    final weatherCode = current['weather_code'] as int;
-
-    final currentWeather = WeatherModel.fromJson(
-      current,
-      city: location['name'],
-      condition: getWeatherCondition(weatherCode),
+    final weatherData = await remoteDataSource.getWeather(
+      location.latitude, 
+      location.longitude,
+      location.name,
     );
 
-    final forecasts = <ForecastModel>[];
-
-    for(int i = 0; i < daily['time'].length; i++) {
-      forecasts.add(
-        ForecastModel.fromJson(
-          date: daily['time'][i],
-          weatherCode: daily['weather_code'][i],
-          maxTemperature: daily['temperature_2m_max'][i],
-          minTemperature: daily['temperature_2m_min'][i],
-        ),
-      );
-    }
-
-    return WeatherDataModel(
-      current: currentWeather,
-      forecast: forecasts,
-    ).toEntity();
+    return weatherData.toEntity();
   }
 }

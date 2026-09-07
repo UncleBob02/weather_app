@@ -120,9 +120,7 @@ class _HomePageState extends State<HomePage> {
                       const Center(
                         child: CircularProgressIndicator(),
                       ),
-                    ],
-
-                    if (_controller.state.errorMessage != null) ...[
+                    ] else if (_controller.state.errorMessage != null) ...[
                       const SizedBox(height: 16),
                       Text(
                         _controller.state.errorMessage!,
@@ -130,9 +128,7 @@ class _HomePageState extends State<HomePage> {
                           color: Colors.red,
                         ),
                       ),
-                    ],
-
-                    if (!_controller.state.isLoading && _controller.state.errorMessage == null) ...[
+                    ] else ...[
 
                       WeatherCard(
                         weather: _controller.state.weather,

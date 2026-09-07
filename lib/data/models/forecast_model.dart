@@ -27,6 +27,25 @@ class ForecastModel {
     );
   }
 
+  static List<ForecastModel> fromDailyJson(
+    Map<String, dynamic> daily,
+  ) {
+    final forecasts = <ForecastModel>[];
+
+    for (int i = 0; i < daily['time'].length; i++) {
+      forecasts.add(
+        ForecastModel.fromJson(
+          date: daily['time'][i],
+          weatherCode: daily['weather_code'][i],
+          maxTemperature: daily['temperature_2m_max'][i],
+          minTemperature: daily['temperature_2m_min'][i],
+        ),
+      );
+    }
+
+    return forecasts;
+  }
+
   Forecast toEntity() {
     return Forecast(
       date: date,
