@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weather_app/core/error/failures.dart';
 import '../../widgets/forecast_list.dart';
 import '../../widgets/weather_card.dart';
 import '../../state/weather_state.dart';
@@ -23,8 +24,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     _controller = WeatherController(
-      getWeather: getWeather,
-      onStateChanged: (newState) {
+      getWeather: Injection.getWeather,
+      onStateChanged: () {
         if (!mounted) {
           return;
         }
@@ -45,18 +46,31 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadWeather(String city) async {
     await _controller.loadWeather(city);
 
-    if (!mounted) {
+    if (mounted) {
       _cityController.clear();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = _controller.state;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Weather'),
         backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh weather',
+            onPressed: state.status == WeatherStatus.loading
+              ? null
+              : () {
+                _controller.refreshWeather();
+              },
+          ),
+        ],
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -81,7 +95,7 @@ class _HomePageState extends State<HomePage> {
                       onSubmitted: (value) {
                         final city = value.trim();
 
-                        if (city.isEmpty || _controller.state.isLoading) {
+                        if (city.isEmpty || state.status == WeatherStatus.loading) {
                           return;
                         }
 
@@ -96,7 +110,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.search),
-                          onPressed: _controller.state.isLoading 
+                          onPressed: state.status == WeatherStatus.loading
                             ? null : () {
                               final city = _cityController.text.trim();
 
@@ -115,30 +129,41 @@ class _HomePageState extends State<HomePage> {
 
                     const SizedBox(height: 24),
 
-                    if (_controller.state.isLoading) ...[
+                    if (state.status == WeatherStatus.loading) ...[
                       const SizedBox(height: 24),
                       const Center(
                         child: CircularProgressIndicator(),
                       ),
-                    ] else if (_controller.state.errorMessage != null) ...[
+                    ] else if (state.status == WeatherStatus.failure) ...[
                       const SizedBox(height: 16),
+                      
                       Text(
-                        _controller.state.errorMessage!,
-                        style: const TextStyle(
-                          color: Colors.red,
+                        state.errorMessage!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
                         ),
                       ),
-                    ] else ...[
 
-                      WeatherCard(
-                        weather: _controller.state.weather,
-                      ),
+                      const SizedBox(height: 12),
 
-                      const SizedBox(height: 40),
-                      
-                      ForecastList(
-                        forecasts: _controller.state.forecast,
-                      ),
+                    ] else if ((state.status == WeatherStatus.success ||
+                                state.status == WeatherStatus.refreshing) &&
+                        state.weather != null) ...[
+                          if (state.status == WeatherStatus.refreshing)
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: LinearProgressIndicator(),
+                          ),
+                          
+                          WeatherCard(
+                            weather: state.weather!,
+                          ),
+
+                          const SizedBox(height: 40),
+                          
+                          ForecastList(
+                            forecasts: state.forecast,
+                          ),
                     ],
                   ],
                 ),

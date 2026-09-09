@@ -3,10 +3,15 @@ import '../data/repositories/weather_repository_impl.dart';
 import '../domain/repositories/weather_repository.dart';
 import '../domain/usecases/get_weather.dart';
 
-final weatherRemoteDataSource = WeatherRemoteDataSource();
+class Injection {
+  static final WeatherRemoteDataSource remoteDataSource =
+      WeatherRemoteDataSource();
 
-final WeatherRepository weatherRepository = WeatherRepositoryImpl(
-  remoteDataSource: weatherRemoteDataSource,
-);
+  static final WeatherRepository weatherRepository =
+      WeatherRepositoryImpl(
+        remoteDataSource: remoteDataSource,
+      );
 
-final getWeather = GetWeather(weatherRepository);
+  static final GetWeather getWeather =
+      GetWeather(weatherRepository);
+}

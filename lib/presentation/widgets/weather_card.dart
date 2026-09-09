@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/weather.dart';
+import '../../core/utils/weather_icon.dart';
 
 class WeatherCard extends StatelessWidget {
   final Weather weather;
@@ -31,7 +32,7 @@ class WeatherCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
-                _getWeatherIcon(weather.weatherCode),
+                getWeatherIcon(weather.weatherCode),
                 size: 80,
                 color: Theme.of(context).colorScheme.primary,
               ),
@@ -91,6 +92,7 @@ class WeatherCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _WeatherDetails(
+                  icon: Icons.water_drop_outlined,
                   label: 'Humidity',
                   value: '${weather.humidity}%',
                 ),
@@ -98,8 +100,9 @@ class WeatherCard extends StatelessWidget {
 
               Expanded(
                 child: _WeatherDetails(
+                  icon: Icons.air,
                   label: 'Wind',
-                  value: '${weather.windSpeed} km/h',
+                  value: '${weather.windSpeed.round()} km/h',
                 ),
               ),
             ],
@@ -110,51 +113,13 @@ class WeatherCard extends StatelessWidget {
   }
 }
 
-IconData _getWeatherIcon(int code) {
-  if (code == 0) {
-    return Icons.wb_sunny; // Clear sky
-  }
-
-  if (code == 1) {
-    return Icons.wb_cloudy_outlined; // Mostly clear
-  }
-
-  if (code == 2 || code == 3) {
-    return Icons.cloud; // Cloudy
-  }
-
-  if (code >= 45 && code <= 48) {
-    return Icons.foggy; // Foggy
-  }
-
-  if (code >= 51 && code <= 57) {
-    return Icons.grain; // Drizzle
-  }
-
-  if (code >= 61 && code <= 67) {
-    return Icons.cloudy_snowing; // Rainy
-  }
-
-  if (code >= 71 && code <= 77) {
-    return Icons.ac_unit; // Snowy
-  }
-
-  if (code >= 80 && code <= 82) {
-    return Icons.cloudy_snowing; // Rain showers
-  }
-
-  if (code >= 95 && code <= 99) {
-    return Icons.thunderstorm;  // Thunderstorm
-  }
-
-  return Icons.cloud;
-}
-
 class _WeatherDetails extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
 
   const _WeatherDetails({
+    required this.icon,
     required this.label,
     required this.value,
   });
@@ -164,6 +129,13 @@ class _WeatherDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Icon(
+          icon,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+
+        const SizedBox(height: 8),
+
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall,

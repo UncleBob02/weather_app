@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
+
 import '../models/location_model.dart';
 import '../models/weather_data_model.dart';
 import '../models/weather_model.dart';
 import '../models/forecast_model.dart';
-import 'package:http/http.dart' as http;
 import '../../core/error/failures.dart';
 
 class WeatherRemoteDataSource {
@@ -47,7 +50,15 @@ class WeatherRemoteDataSource {
         rethrow;
       } 
         
-      throw NetworkFailure('Network error occurred');
+      if (e is SocketException) {
+        throw NetworkFailure(
+          'Could not connect to the network.'
+        );
+      }
+
+      throw UnexpectedFailure(
+        'An unexpected error occurred while finding the location.'
+      );
     }
   }
 
@@ -81,7 +92,7 @@ class WeatherRemoteDataSource {
 
       final currentWeather = WeatherModel.fromJson(
         current,
-        city: '',
+        city: '$city',
       );
 
       final forecasts = ForecastModel.fromDailyJson(daily);
@@ -90,12 +101,20 @@ class WeatherRemoteDataSource {
         current: currentWeather,
         forecast: forecasts,
       );
-
     } catch (e) {
       if (e is Failure) {
         rethrow;
       }
-      throw NetworkFailure('Network error occurred');
+
+      if (e is SocketException) {
+        throw NetworkFailure(
+          'Could not connect to the weather service.'
+        );
+      }
+
+      throw UnexpectedFailure(
+        'An unexpected error occurred while fetching weather data.'
+      );
     }
   }
 }
