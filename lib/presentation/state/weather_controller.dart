@@ -1,10 +1,13 @@
 import 'package:flutter/animation.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../domain/usecases/get_current_location.dart';
 import '../../domain/usecases/get_weather.dart';
 import '../../core/error/failures.dart';
 import 'weather_state.dart';
 
 class WeatherController {
   final GetWeather getWeather;
+  final GetCurrentLocation getCurrentLocation;
   final void Function() onStateChanged;
 
   String? _currentCity;
@@ -17,6 +20,7 @@ class WeatherController {
 
   WeatherController({
     required this.getWeather,
+    required this.getCurrentLocation,
     required this.onStateChanged,
   }) : _state = WeatherState.initial();
 
@@ -75,6 +79,28 @@ class WeatherController {
     }
   }
 
+  Future<void> loadWeatherByCurrentLocation() async {
+    _state = _state.copyWith(
+      status: WeatherStatus.loading,
+      errorMessage: null,
+      failure: null,
+    );
+
+    onStateChanged();
+
+    try {
+      final position = await getCurrentLocation();
+    } catch (e) {
+      _state = _state.copyWith(
+        status: WeatherStatus.failure,
+        errorMessage: 'Could not get your location',
+        failure: e is Failure ? e : null,
+      );
+
+      onStateChanged();
+    }
+  }
+
   Future<void> refreshWeather() async {
     final city =  _currentCity;
 
@@ -84,10 +110,10 @@ class WeatherController {
       _state.status == WeatherStatus.refreshing) {
       return;
     }
-
+    
     await loadWeather(
       city, 
-      isRefreshing: true
+      isRefreshing: true,
     );
   }
 }

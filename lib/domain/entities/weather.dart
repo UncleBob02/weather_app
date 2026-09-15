@@ -6,6 +6,7 @@ class Weather {
   final int humidity;
   final double windSpeed;
   final int weatherCode;
+  final DateTime updatedAt;
 
   const Weather({
     required this.city,
@@ -15,5 +16,6 @@ class Weather {
     required this.humidity,
     required this.windSpeed,
     required this.weatherCode,
+    required this.updatedAt,
   });
 }

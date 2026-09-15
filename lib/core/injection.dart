@@ -2,10 +2,14 @@ import '../data/datasources/weather_remote_data_source.dart';
 import '../data/repositories/weather_repository_impl.dart';
 import '../domain/repositories/weather_repository.dart';
 import '../domain/usecases/get_weather.dart';
+import '../data/datasources/location_data_source.dart';
+import '../data/repositories/location_repository_impl.dart';
+import '../domain/repositories/location_repository.dart';
+import '../domain/usecases/get_current_location.dart';
 
 class Injection {
   static final WeatherRemoteDataSource remoteDataSource =
-      WeatherRemoteDataSource();
+      WeatherRemoteDataSourceImpl();
 
   static final WeatherRepository weatherRepository =
       WeatherRepositoryImpl(
@@ -14,4 +18,15 @@ class Injection {
 
   static final GetWeather getWeather =
       GetWeather(weatherRepository);
+
+  static final LocationDataSource locationDataSource =
+    LocationDataSourceImpl();
+
+  static final LocationRepository locationRepository =
+      LocationRepositoryImpl(
+        dataSource: locationDataSource,
+      );
+
+  static final GetCurrentLocation getCurrentLocation =
+      GetCurrentLocation(locationRepository);
 }

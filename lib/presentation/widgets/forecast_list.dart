@@ -4,13 +4,16 @@ import '../../domain/entities/forecast.dart';
 import '../../core/utils/weather_icon.dart';
 import '../../core/utils/date_formatter.dart';
 import '../../core/utils/weather_condition.dart';
+import '../../core/utils/temperature_formatter.dart';
 
 class ForecastList extends StatelessWidget {
   final List<Forecast> forecasts;
+  final bool isCelsius;
 
   const ForecastList({
     super.key,
     required this.forecasts,
+    required this.isCelsius,
   });
 
   @override
@@ -32,6 +35,7 @@ class ForecastList extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 12),
             child: _ForecastRow(
               forecast: forecast,
+              isCelsius: isCelsius,
             )          
           ),
         ),
@@ -42,9 +46,11 @@ class ForecastList extends StatelessWidget {
 
 class _ForecastRow extends StatelessWidget {
   final Forecast forecast;
+  final bool isCelsius;
 
   const _ForecastRow({
     required this.forecast,
+    required this.isCelsius,
   });
 
   @override
@@ -97,7 +103,8 @@ class _ForecastRow extends StatelessWidget {
 
           Expanded(
             child: Text(
-              '${forecast.maxTemperature.round()}° /  ${forecast.minTemperature.round()}°',
+              '${formatTemperature(forecast.maxTemperature, isCelsius)} / '
+              '${formatTemperature(forecast.minTemperature, isCelsius)}',
               textAlign: TextAlign.right,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,

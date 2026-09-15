@@ -1,10 +1,6 @@
 import '../../domain/entities/weather_data.dart';
 import '../../domain/repositories/weather_repository.dart';
 import '../datasources/weather_remote_data_source.dart';
-import '../models/weather_model.dart';
-import '../models/forecast_model.dart';
-import '../models/weather_data_model.dart';
-import '../../core/utils/weather_condition.dart';
 
 class WeatherRepositoryImpl implements WeatherRepository {
   final WeatherRemoteDataSource remoteDataSource;
@@ -21,6 +17,21 @@ class WeatherRepositoryImpl implements WeatherRepository {
       location.latitude, 
       location.longitude,
       location.name,
+    );
+
+    return weatherData.toEntity();
+  }
+
+  @override
+  Future<WeatherData> getWeatherByCoordinates(
+    double latitude,
+    double longitude,
+    String city,
+  ) async {
+    final weatherData = await remoteDataSource.getWeather(
+      latitude, 
+      longitude, 
+      city,
     );
 
     return weatherData.toEntity();

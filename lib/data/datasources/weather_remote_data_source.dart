@@ -9,7 +9,16 @@ import '../models/weather_model.dart';
 import '../models/forecast_model.dart';
 import '../../core/error/failures.dart';
 
-class WeatherRemoteDataSource {
+abstract class WeatherRemoteDataSource {
+  Future<LocationModel> getLocation(String city);
+
+  Future<WeatherDataModel> getWeather(
+    double latitude, 
+    double longitude,
+    String city,
+  );
+}
+class WeatherRemoteDataSourceImpl implements WeatherRemoteDataSource{
   Future<LocationModel> getLocation(String city) async {
     final url = Uri.https(
       'geocoding-api.open-meteo.com',
@@ -90,9 +99,12 @@ class WeatherRemoteDataSource {
       final current = data['current'];
       final daily = data['daily'];
 
+      final updatedAt = DateTime.now();
+
       final currentWeather = WeatherModel.fromJson(
         current,
-        city: '$city',
+        city: city,
+        updatedAt: updatedAt,
       );
 
       final forecasts = ForecastModel.fromDailyJson(daily);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/core/error/failures.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/forecast_list.dart';
 import '../../widgets/weather_card.dart';
 import '../../state/weather_state.dart';
@@ -16,8 +17,21 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _cityController = TextEditingController();
-  
   late final WeatherController _controller;
+  bool _isCelsius = true;
+
+  Future<void> _loadUnitPreference() async {
+    final preferences = await SharedPreferences.getInstance();
+
+    final isCelsius = preferences.getBool('isCelsius');
+
+
+    if (isCelsius !=null && mounted) {
+      setState(() {
+        _isCelsius = isCelsius;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -25,6 +39,7 @@ class _HomePageState extends State<HomePage> {
 
     _controller = WeatherController(
       getWeather: Injection.getWeather,
+      getCurrentLocation: Injection.getCurrentLocation,
       onStateChanged: () {
         if (!mounted) {
           return;
@@ -34,6 +49,7 @@ class _HomePageState extends State<HomePage> {
       },
     );
 
+    _loadUnitPreference();
     _loadWeather('Midrand');
   }
 
@@ -61,6 +77,43 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         actions: [
+          IconButton(
+            onPressed: () {
+              _controller.loadWeatherByCurrentLocation();
+            }, 
+            icon: const Icon(Icons.my_location),
+            tooltip: 'Use my location', 
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment(
+                  value: true,
+                  label: Text('°C'),
+                ),
+                ButtonSegment(
+                  value: false,
+                  label: Text('°F'),
+                ),
+              ],
+              selected: {_isCelsius},
+              onSelectionChanged: (selection) async {
+                final isCelsius = selection.first;
+                
+                setState(() {
+                  _isCelsius = isCelsius;
+                });
+
+                final preferences = await SharedPreferences.getInstance();
+
+                await preferences.setBool(
+                  'isCelsius', 
+                  isCelsius,
+                );
+              },
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh weather',
@@ -157,12 +210,14 @@ class _HomePageState extends State<HomePage> {
                           
                           WeatherCard(
                             weather: state.weather!,
+                            isCelsius: _isCelsius,
                           ),
 
                           const SizedBox(height: 40),
                           
                           ForecastList(
                             forecasts: state.forecast,
+                            isCelsius: _isCelsius,
                           ),
                     ],
                   ],

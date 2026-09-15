@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/weather.dart';
 import '../../core/utils/weather_icon.dart';
+import '../../core/utils/temperature_formatter.dart';
 
 class WeatherCard extends StatelessWidget {
   final Weather weather;
+  final bool isCelsius;
 
   const WeatherCard({
     super.key,
     required this.weather,
+    required this.isCelsius,
   });
 
   @override
@@ -66,7 +69,10 @@ class WeatherCard extends StatelessWidget {
 
           Center(
             child: Text(
-              '${weather.temperature.round()}°C',
+              formatTemperature(
+                weather.temperature, 
+                isCelsius,
+              ),
               style: Theme.of(context).textTheme.displayLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
@@ -78,11 +84,25 @@ class WeatherCard extends StatelessWidget {
 
           Center(
             child: Text(
-              'Feels like ${weather.feelsLike.round()}°C',
+              'Feels like ${formatTemperature(
+                weather.feelsLike,
+                isCelsius,
+              )}',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            'Updated ${weather.updatedAt.hour.toString().padLeft(2, '0')}:'
+            '${weather.updatedAt.minute.toString().padLeft(2, '0')}:'
+            '${weather.updatedAt.second.toString().padLeft(2, '0')}',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
 
