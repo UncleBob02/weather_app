@@ -1,13 +1,16 @@
 import 'package:flutter/animation.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:weather_app/domain/entities/weather_data.dart';
 import '../../domain/usecases/get_current_location.dart';
 import '../../domain/usecases/get_weather.dart';
+import '../../domain/usecases/get_weather_by_coordinates.dart';
 import '../../core/error/failures.dart';
 import 'weather_state.dart';
 
 class WeatherController {
   final GetWeather getWeather;
   final GetCurrentLocation getCurrentLocation;
+  final GetWeatherByCoordinates getWeatherByCoordinates;
   final void Function() onStateChanged;
 
   String? _currentCity;
@@ -21,6 +24,7 @@ class WeatherController {
   WeatherController({
     required this.getWeather,
     required this.getCurrentLocation,
+    required this.getWeatherByCoordinates,
     required this.onStateChanged,
   }) : _state = WeatherState.initial();
 
@@ -90,10 +94,44 @@ class WeatherController {
 
     try {
       final position = await getCurrentLocation();
+
+      final weatherData =  await getWeatherByCoordinates(
+        position.latitude,
+        position.longitude,
+        'Current location',
+      );
+
+      _state = _state.copyWith(
+        weather: weatherData.current,
+        forecast: weatherData.forecast,
+        status: WeatherStatus.success,
+        errorMessage: null,
+        failure: null,
+      );
+
+      onStateChanged();
     } catch (e) {
+      String message;
+
+      if (e is LocationServiceFailure) {
+        message = 'Please turn on location services.';
+      } else if (e is LocationPermissionFailure) {
+        message = 'Location permission was denied.';
+      } else if (e is LocationPermissionPermanentlyDeniedFailure) {
+        message = 'Location permission is permanently denied.';
+      } else if (e is LocationFailure) {
+        message = 'Could not determine your location.';
+      } else if (e is NetworkFailure) {
+        message = 'Please check your internet connection.';
+      } else if (e is ServerFailure) {
+        message = 'Could not connect to the weather service.';
+      } else {
+        message = 'Something went wrong.';
+      }
+
       _state = _state.copyWith(
         status: WeatherStatus.failure,
-        errorMessage: 'Could not get your location',
+        errorMessage: message,
         failure: e is Failure ? e : null,
       );
 

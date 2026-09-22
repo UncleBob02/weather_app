@@ -6,6 +6,6 @@ abstract class WeatherRepository {
   Future<WeatherData> getWeatherByCoordinates(
     double latitude,
     double longitude,
-    String city, 
+    String city,
   );
 }

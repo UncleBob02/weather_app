@@ -1,4 +1,5 @@
 import 'package:geolocator/geolocator.dart';
+import '../../core/error/failures.dart';
 
 abstract class LocationDataSource {
   Future<Position> getCurrentPosition();
@@ -7,10 +8,13 @@ abstract class LocationDataSource {
 class LocationDataSourceImpl implements LocationDataSource {
   @override
   Future<Position> getCurrentPosition() async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    final serviceEnabled = 
+      await Geolocator.isLocationServiceEnabled();
 
     if(!serviceEnabled) {
-      throw Exception('Location services are disabled.');
+      throw const LocationServiceFailure(
+        'Location services are disabled.'
+      );
     }
 
     LocationPermission permission = 
@@ -21,15 +25,23 @@ class LocationDataSourceImpl implements LocationDataSource {
     }
 
     if (permission == LocationPermission.denied) {
-      throw Exception('Location permission was denied');
+      throw const LocationPermissionFailure(
+        'Location permission was denied'
+      );
     }
 
     if (permission == LocationPermission.deniedForever) {
-      throw Exception(
+      throw const LocationPermissionPermanentlyDeniedFailure(
         'Location permission was permanently denied.',
       );
     }
 
-    return Geolocator.getCurrentPosition();
+    try {
+      return await Geolocator.getCurrentPosition();
+    } catch (e) {
+      throw const LocationFailure(
+        'Could not determine your location'
+      );
+    }
   }
 }

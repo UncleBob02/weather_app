@@ -40,6 +40,7 @@ class _HomePageState extends State<HomePage> {
     _controller = WeatherController(
       getWeather: Injection.getWeather,
       getCurrentLocation: Injection.getCurrentLocation,
+      getWeatherByCoordinates: Injection.getWeatherByCoordinates,
       onStateChanged: () {
         if (!mounted) {
           return;
@@ -78,9 +79,12 @@ class _HomePageState extends State<HomePage> {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         actions: [
           IconButton(
-            onPressed: () {
-              _controller.loadWeatherByCurrentLocation();
-            }, 
+            onPressed: state.status == WeatherStatus.loading ||
+                  state.status == WeatherStatus.refreshing
+              ? null
+              : () {
+                  _controller.loadWeatherByCurrentLocation();
+                },
             icon: const Icon(Icons.my_location),
             tooltip: 'Use my location', 
           ),

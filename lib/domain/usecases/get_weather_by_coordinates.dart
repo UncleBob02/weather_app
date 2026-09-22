@@ -1,6 +1,4 @@
-import 'package:weather_app/domain/entities/weather_data.dart';
-
-import '../entities/weather.dart';
+import '../entities/weather_data.dart';
 import '../repositories/weather_repository.dart';
 
 class GetWeatherByCoordinates {
