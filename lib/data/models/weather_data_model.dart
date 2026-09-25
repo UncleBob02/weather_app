@@ -1,6 +1,4 @@
 import '../../domain/entities/weather_data.dart';
-import '../../domain/entities/weather.dart';
-import '../../domain/entities/forecast.dart';
 import 'weather_model.dart';
 import 'forecast_model.dart';
 

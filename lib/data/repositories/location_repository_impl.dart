@@ -14,4 +14,15 @@ class LocationRepositoryImpl implements LocationRepository {
   Future<Position> getCurrentPosition() {
     return dataSource.getCurrentPosition();
   }
+
+  @override
+  Future<String> getCityName(
+    double latitude,
+    double longitude,
+  ) {
+    return dataSource.getCityName(
+      latitude, 
+      longitude,
+    );
+  }
 }

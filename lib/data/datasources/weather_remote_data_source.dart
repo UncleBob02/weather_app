@@ -19,6 +19,8 @@ abstract class WeatherRemoteDataSource {
   );
 }
 class WeatherRemoteDataSourceImpl implements WeatherRemoteDataSource{
+
+  @override
   Future<LocationModel> getLocation(String city) async {
     final url = Uri.https(
       'geocoding-api.open-meteo.com',
@@ -71,6 +73,7 @@ class WeatherRemoteDataSourceImpl implements WeatherRemoteDataSource{
     }
   }
 
+  @override
   Future<WeatherDataModel> getWeather(
     double latitude, 
     double longitude,

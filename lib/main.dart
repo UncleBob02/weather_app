@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'core/injection.dart';
 import 'presentation/pages/home/home_page.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Injection.initialize();
+
   runApp(const WeatherApp());
 }
 

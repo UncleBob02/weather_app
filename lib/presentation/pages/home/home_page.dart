@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:weather_app/core/error/failures.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/forecast_list.dart';
 import '../../widgets/weather_card.dart';
 import '../../state/weather_state.dart';
-import '../../../domain/entities/weather.dart';
 import '../../../core/injection.dart';
 import '../../state/weather_controller.dart';
 
@@ -41,6 +39,9 @@ class _HomePageState extends State<HomePage> {
       getWeather: Injection.getWeather,
       getCurrentLocation: Injection.getCurrentLocation,
       getWeatherByCoordinates: Injection.getWeatherByCoordinates,
+      getCityName: Injection.getCityName,
+      getLastCity: Injection.getLastCity,
+      saveLastCity: Injection.saveLastCity,
       onStateChanged: () {
         if (!mounted) {
           return;
@@ -50,8 +51,8 @@ class _HomePageState extends State<HomePage> {
       },
     );
 
+    _controller.loadLastCity();
     _loadUnitPreference();
-    _loadWeather('Midrand');
   }
 
   @override

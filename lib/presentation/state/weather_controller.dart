@@ -1,8 +1,8 @@
-import 'package:flutter/animation.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:weather_app/domain/entities/weather_data.dart';
-import '../../domain/usecases/get_current_location.dart';
 import '../../domain/usecases/get_weather.dart';
+import '../../domain/usecases/get_city_name.dart';
+import '../../domain/usecases/get_last_city.dart';
+import '../../domain/usecases/save_last_city.dart';
+import '../../domain/usecases/get_current_location.dart';
 import '../../domain/usecases/get_weather_by_coordinates.dart';
 import '../../core/error/failures.dart';
 import 'weather_state.dart';
@@ -11,6 +11,9 @@ class WeatherController {
   final GetWeather getWeather;
   final GetCurrentLocation getCurrentLocation;
   final GetWeatherByCoordinates getWeatherByCoordinates;
+  final GetCityName getCityName;
+  final GetLastCity getLastCity;
+  final SaveLastCity saveLastCity;
   final void Function() onStateChanged;
 
   String? _currentCity;
@@ -25,6 +28,9 @@ class WeatherController {
     required this.getWeather,
     required this.getCurrentLocation,
     required this.getWeatherByCoordinates,
+    required this.getCityName,
+    required this.getLastCity,
+    required this.saveLastCity,
     required this.onStateChanged,
   }) : _state = WeatherState.initial();
 
@@ -46,6 +52,10 @@ class WeatherController {
 
     try {
       final weatherData = await getWeather(city);
+      
+      _currentCity = city;
+
+      await saveLastCity(city);
 
       _state = _state.copyWith(
         weather: weatherData.current,
@@ -57,7 +67,6 @@ class WeatherController {
 
       onStateChanged();
     } catch (e) {
-      print('Weather Error: $e');
 
       String message;
 
@@ -83,6 +92,16 @@ class WeatherController {
     }
   }
 
+  Future<void> loadLastCity() async {
+    final city = await getLastCity();
+
+    if (city == null || city.isEmpty) {
+      return;
+    }
+
+    await loadWeather(city);
+  }
+
   Future<void> loadWeatherByCurrentLocation() async {
     _state = _state.copyWith(
       status: WeatherStatus.loading,
@@ -95,10 +114,15 @@ class WeatherController {
     try {
       final position = await getCurrentLocation();
 
+      final city = await getCityName(
+          position.latitude, 
+          position.longitude,  
+        );
+
       final weatherData =  await getWeatherByCoordinates(
         position.latitude,
         position.longitude,
-        'Current location',
+        city,
       );
 
       _state = _state.copyWith(
